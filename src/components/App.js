@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import Header from './Header';
 import Main from './Main';
 import Footer from './Footer';
@@ -10,6 +11,11 @@ import ConfirmPopup from './ConfirmPopup';
 import api from '../utils/api';
 import { CurrentUserContext } from '../contexts/CurrentUserContext';
 import { CardsContext } from '../contexts/CardsContext';
+import Register from './Register';
+import Login from './Login';
+import InfoTooltip from './InfoTooltip';
+import ProtectedRoute from './ProtectedRoute';
+import * as Auth from '../utils/Auth';
 
 function App() {
 
@@ -17,10 +23,15 @@ function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
   const [isConfirmPopupOpen, setIsConfirmPopupOpen] = useState(false);
+  const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState({ name: "", link: "" });
   const [card, setCard] = useState({ name: "", link: "", _id: "" });
   const [currentUser, setCurrentUser] = useState({});
   const [cards, setCards] = useState([]);
+  const [loggedInn, setLoggedInn] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
+  const navigate = useNavigate();
 
   function handleEditAvatarClick() {
     setIsEditAvatarPopupOpen(true);
@@ -49,6 +60,7 @@ function App() {
     setIsAddPlacePopupOpen(false);
     setSelectedCard({ name: "", link: "" });
     setIsConfirmPopupOpen(false);
+    setIsInfoTooltipOpen(false);
   }
 
   function handleUpdateUser(currentUser) {
@@ -130,25 +142,96 @@ function App() {
       .catch(err => {
         console.log(`Ошибка при удалении карточки: ${err}`);
       })
-
   }
+
+  function handleLogin(email, password) {
+    return Auth.authorize(email, password)
+      .then((res) => {
+        localStorage.setItem('jwt', res.token);
+        setLoggedInn(true);
+        setEmail(email);
+        navigate('/');
+      })
+      .catch((err) => {
+        if (err.status === 400) {
+          console.log('400 - не передано одно из полей');
+        } else if (err.status === 401) {
+          console.log('401 - пользователь с email не найден');
+        }
+      });
+  }
+
+  function handleRegister(email, password) {
+    return Auth.register(email, password)
+      .then(() => {
+        setIsSuccess(true);
+        navigate('/sign-in');
+      })
+      .catch((err) => {
+        setIsSuccess(false);
+        if (err.status === 400) {
+          console.log('400 - некорректно заполнено одно из полей');
+        }
+      })
+      .finally(() => {
+        setIsInfoTooltipOpen(true);
+      })
+  }
+
+  function signOut() {
+    localStorage.removeItem('jwt');
+    setLoggedInn(false);
+    navigate('/login');
+  }
+
+  useEffect(() => {
+    const jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      Auth.getContent(jwt)
+        .then((res) => {
+          setLoggedInn(true);
+          setEmail(res.data.email);
+          navigate('/');
+        })
+        .catch((err) => {
+          setIsSuccess(false);
+          if (err.status === 401) {
+            console.log('401 — Токен не передан или передан не в том формате');
+          }
+          console.log('401 — Переданный токен некорректен');
+        })
+    }
+  }, [navigate]);
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <CardsContext.Provider value={cards}>
         <div className="App">
           <div className="root">
-            <Header />
-            <Main
-              onEditProfile={handleEditProfileClick}
-              onAddPlace={handleAddClick}
-              onEditAvatar={handleEditAvatarClick}
-              onCardClick={handleCardClick}
-              cards={cards}
-              onCardLike={handleCardLike}
-              onCardDelete={handleCardDeleteClick}
-            >
-            </Main>
+            <Header
+              email={email}
+              signOut={signOut}
+            />
+            <Routes>
+              <Route exact path="/"
+                element={
+                  <ProtectedRoute loggedIn={loggedInn}>
+                    <Main
+                      onEditProfile={handleEditProfileClick}
+                      onAddPlace={handleAddClick}
+                      onEditAvatar={handleEditAvatarClick}
+                      onCardClick={handleCardClick}
+                      cards={cards}
+                      onCardLike={handleCardLike}
+                      onCardDelete={handleCardDeleteClick} />
+                  </ProtectedRoute>
+                } />
+
+              <Route path="/sign-up" element={<Register handleRegister={handleRegister} />} />
+              <Route path="/sign-in" element={<Login handleLogin={handleLogin} />} />
+
+            </Routes>
+
             <Footer />
 
             <EditProfilePopup
@@ -180,6 +263,11 @@ function App() {
               card={selectedCard}
               onClose={closeAllPopups}
             ></ImagePopup>
+
+            <InfoTooltip
+              isOpen={isInfoTooltipOpen}
+              onClose={closeAllPopups}
+              isSuccess={isSuccess} />
 
           </div>
         </div>

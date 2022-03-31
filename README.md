@@ -27,4 +27,4 @@ Functional: add/delete cards, like cards, editing profile info and changing prof
 
 **Link** 
 
-https://natashasnezhkina.github.io/mesto/
+https://natashasnezhkina.github.io/react-mesto-auth/

@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children, ...props }) => {
   return (
-    props.loggedIn === true ? children : <Navigate to="/sign-up" />
+    props.loggedIn ? children : <Navigate to="/sign-up" />
 )}
 
 export default ProtectedRoute;

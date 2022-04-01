@@ -63,6 +63,8 @@ function App() {
     setIsInfoTooltipOpen(false);
   }
 
+  // user
+
   function handleUpdateUser(currentUser) {
     api.sendProfileInfo(currentUser)
       .then((user) => {
@@ -85,25 +87,31 @@ function App() {
       })
   }
 
+  // from endpoint
+
   useEffect(() => {
-    api.getProfileInfo()
-      .then((currentUser) => {
-        setCurrentUser(currentUser)
-      })
-      .catch(err => {
-        console.log(err);
-      })
-    api.getCards()
-      .then((res) => {
-        setCards(
-          res
-        )
-      })
-      .catch(err => {
-        console.log(err);
-      })
+    if (loggedInn === true) {
+      api.getProfileInfo()
+        .then((currentUser) => {
+          setCurrentUser(currentUser)
+        })
+        .catch(err => {
+          console.log(err);
+        })
+      api.getCards()
+        .then((res) => {
+          setCards(
+            res
+          )
+        })
+        .catch(err => {
+          console.log(err);
+        })
+    }
 
   }, [])
+
+  // actions with cards
 
   function handleAddPlace(card) {
     api.sendCard(card)
@@ -144,6 +152,8 @@ function App() {
       })
   }
 
+  // sign-in/-up/-out
+
   function handleLogin(email, password) {
     return Auth.authorize(email, password)
       .then((res) => {
@@ -153,6 +163,8 @@ function App() {
         navigate('/');
       })
       .catch((err) => {
+        setIsSuccess(false);
+        setIsInfoTooltipOpen(true);
         if (err.status === 400) {
           console.log('400 - не передано одно из полей');
         } else if (err.status === 401) {
@@ -201,7 +213,7 @@ function App() {
           console.log('401 — Переданный токен некорректен');
         })
     }
-  }, [navigate]);
+  }, [navigate.location]);
 
   return (
     <CurrentUserContext.Provider value={currentUser}>

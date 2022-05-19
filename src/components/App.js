@@ -32,6 +32,72 @@ function App() {
   const [email, setEmail] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
+  const token = localStorage.getItem("jwt");
+
+  useEffect(() => {
+    if (loggedInn === true) {
+      api.getProfileInfo(token)
+        .then((currentUser) => {
+          setCurrentUser(currentUser);
+          console.log(currentUser);
+          console.log(token);
+        })
+        .catch(err => {
+          console.log(err);
+        })
+    }
+
+  }, [loggedInn, token])
+
+  useEffect(() => {
+    if (loggedInn === true) {
+      api.getCards(token)
+      .then((res) => {
+        setCards(
+          res
+        )
+      })
+      .catch(err => {
+        console.log(err);
+      })
+    }
+  }, [loggedInn, token])
+
+  useEffect(() => {
+    if (token) {
+      return Auth.getContent(token)
+        .then((res) => {
+          console.log(res);
+          setLoggedInn(true);
+          setEmail(res.email);
+          setCurrentUser(res);
+          navigate('/');
+        })
+        .catch((err) => {
+          setIsSuccess(false);
+          if (err.status === 401) {
+            console.log('401 — Токен не передан или передан не в том формате');
+          }
+          console.log(token, '401 — Переданный токен некорректен');
+        })
+    }
+  }, [navigate.location, token]);
+
+  // actions with cards
+
+  function handleAddPlace(card) {
+    api.sendCard(card, token)
+      .then((newCard) => {
+        setCards(
+          [newCard, ...cards]
+        )
+        closeAllPopups();
+      }
+      )
+      .catch(err => {
+        console.log(`Ошибка связанная с загрузкой новой карточки: ${err}`);
+      })
+  }
 
   function handleEditAvatarClick() {
     setIsEditAvatarPopupOpen(true);
@@ -66,7 +132,7 @@ function App() {
   // user
 
   function handleUpdateUser(currentUser) {
-    api.sendProfileInfo(currentUser)
+    api.sendProfileInfo(currentUser, token)
       .then((user) => {
         setCurrentUser(user);
         setIsEditProfilePopupOpen(false);
@@ -77,7 +143,7 @@ function App() {
   }
 
   function handleUpdateAvatar(currentUser) {
-    api.sendAvatar(currentUser)
+    api.sendAvatar(currentUser, token)
       .then((res) => {
         setCurrentUser(res);
         setIsEditAvatarPopupOpen(false);
@@ -87,60 +153,24 @@ function App() {
       })
   }
 
-  // from endpoint
-
-  useEffect(() => {
-    if (loggedInn === true) {
-      api.getProfileInfo()
-        .then((currentUser) => {
-          setCurrentUser(currentUser)
-        })
-        .catch(err => {
-          console.log(err);
-        })
-      api.getCards()
-        .then((res) => {
-          setCards(
-            res
-          )
-        })
-        .catch(err => {
-          console.log(err);
-        })
-    }
-
-  }, [])
-
-  // actions with cards
-
-  function handleAddPlace(card) {
-    api.sendCard(card)
-      .then((newCard) => {
-        setCards(
-          [newCard, ...cards]
-        )
-        closeAllPopups();
-      }
-      )
-      .catch(err => {
-        console.log(err);
-      })
-  }
+  // from endpoin
 
   function handleCardLike(card) {
-    const isLiked = card.likes.some(i => i._id === currentUser._id);
+    const isLiked = card.likes.some(i => i === currentUser._id);
 
-    api.changeLikeCardStatus(card._id, !isLiked)
+    api.changeLikeCardStatus(card._id, !isLiked, token)
       .then((newCard) => {
-        setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
+        console.log(newCard);
+        setCards((state) => 
+        state.map((c) => c._id === card._id ? newCard : c));
       })
       .catch(err => {
-        console.log(`Ошибка при удалении лайка${err}`);
+        console.log(`Ошибка при размещении лайка${err}`);
       });
   }
 
   function handleCardDelete(card) {
-    api.deleteCard(card._id)
+    api.deleteCard(card._id, token)
       .then(() => {
         setCards((cards) => cards.filter((c) => {
           return c._id !== card._id;
@@ -155,12 +185,14 @@ function App() {
   // sign-in/-up/-out
 
   function handleLogin(email, password) {
-    return Auth.authorize(email, password)
-      .then((res) => {
-        localStorage.setItem('jwt', res.token);
-        setLoggedInn(true);
-        setEmail(email);
-        navigate('/');
+    Auth.authorize(email, password)
+      .then((data) => {
+        Auth.getContent(data.token).then((res) => {
+          // localStorage.setItem('jwt', res.token);
+          setLoggedInn(true);
+          setEmail(email);
+          navigate('/');
+        });
       })
       .catch((err) => {
         setIsSuccess(false);
@@ -195,25 +227,6 @@ function App() {
     setLoggedInn(false);
     navigate('/login');
   }
-
-  useEffect(() => {
-    const jwt = localStorage.getItem('jwt');
-    if (jwt) {
-      Auth.getContent(jwt)
-        .then((res) => {
-          setLoggedInn(true);
-          setEmail(res.data.email);
-          navigate('/');
-        })
-        .catch((err) => {
-          setIsSuccess(false);
-          if (err.status === 401) {
-            console.log('401 — Токен не передан или передан не в том формате');
-          }
-          console.log('401 — Переданный токен некорректен');
-        })
-    }
-  }, [navigate.location]);
 
   return (
     <CurrentUserContext.Provider value={currentUser}>

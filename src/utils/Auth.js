@@ -1,15 +1,15 @@
-export const BASE_URL = 'https://auth.nomoreparties.co';
+export const BASE_URL = 'https://api.mesto.natasha.snezh.nomoredomains.xyz';
 
-const checkResponse = async (response) => {
-  const data = await response.json();
+const checkResponse = (response) => {
+  const data = response.json();
   if (response.ok) {
     return data;
   }
-  const { statusCode } = data;
-  const { message } = data.message[0].messages[0]
-  const error = new Error(message || 'Что-то пошло не так');
-  error.status = statusCode;
-  throw error
+  // const { statusCode } = data;
+  // const { message } = data.message[0].messages[0]
+  // const error = new Error(message || 'Что-то пошло не так');
+  // error.status = statusCode;
+  // throw error
 }
 
 export const register = (email, password) => {
@@ -19,21 +19,50 @@ export const register = (email, password) => {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({email, password})
+    body: JSON.stringify({ email, password })
   })
-  .then(checkResponse)
+    .then(checkResponse)
 };
+
+// export const authorize = (email, password) => {
+//   return fetch(`${BASE_URL}/signin`, {
+//     method: 'POST',
+//     headers: {
+//       'Accept': 'application/json',
+//       'Content-Type': 'application/json'
+//     },
+//     body: JSON.stringify({ email, password })
+//   })
+//     .then(res => res.json())
+//     .then((data) => {
+//       console.log(data);
+//       localStorage.setItem('token', data.token);
+//       // сохраняем токен                 
+//       // if (data.token) {
+//       //   console.log(data.token);
+//       //   localStorage.setItem("jwt", data.token);
+//       //   return data;
+//       // }
+//     });
+// };
 
 export const authorize = (email, password) => {
   return fetch(`${BASE_URL}/signin`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
+      "Content": "hi!",
     },
-    body: JSON.stringify({email, password})
+    body: JSON.stringify({ email, password }),
   })
-  .then(checkResponse)
+    .then((res) => checkResponse(res))
+    // .then(res => res.json())
+    // .then((data) => {
+    //   if (data.token) {
+    //     localStorage.setItem("jwt", data.token);
+    //     return data;
+    //   }
+    // });
 };
 
 export const getContent = (token) => {
@@ -45,5 +74,5 @@ export const getContent = (token) => {
       'Authorization': `Bearer ${token}`,
     }
   })
-  .then(checkResponse)
+    .then(checkResponse)
 }

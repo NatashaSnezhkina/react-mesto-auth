@@ -1,7 +1,6 @@
 class Api {
-  constructor({ address, token }) {
+  constructor({ address }) {
     this._address = address;
-    this._token = token;
   }
 
   _responseProcessing() {
@@ -13,21 +12,22 @@ class Api {
     })
   }
 
-  getCards() {
+  getCards(token) {
     return fetch(`${this._address}/cards`, {
       headers: {
-        authorization: this._token
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       }
     })
       .then(this._responseProcessing())
   }
 
-  sendCard(data) {
+  sendCard(data, token) {
     return fetch(`${this._address}/cards`, {
       method: 'POST',
       headers: {
-        authorization: this._token,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
         name: data.name,
@@ -37,21 +37,23 @@ class Api {
       .then(this._responseProcessing())
   }
 
-  getProfileInfo() {
+  getProfileInfo(token) {
     return fetch(`${this._address}/users/me`, {
       headers: {
-        authorization: this._token
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       }
     })
       .then(this._responseProcessing())
   }
 
-  sendProfileInfo(data) {
+  sendProfileInfo(data, token) {
+    console.log(token, data);
     return fetch(`${this._address}/users/me`, {
       method: 'PATCH',
       headers: {
-        authorization: this._token,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
         name: data.name,
@@ -61,12 +63,12 @@ class Api {
       .then(this._responseProcessing())
   }
 
-  sendAvatar(data) {
+  sendAvatar(data, token) {
     return fetch(`${this._address}/users/me/avatar`, {
       method: 'PATCH',
       headers: {
-        authorization: this._token,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
         avatar: data.avatar
@@ -75,23 +77,23 @@ class Api {
       .then(this._responseProcessing())
   }
 
-  deleteCard(cardId) {
+  deleteCard(cardId, token) {
     return fetch(`${this._address}/cards/${cardId}`, {
       method: 'DELETE',
       headers: {
-        authorization: this._token,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
     })
       .then(this._responseProcessing())
   }
 
-  changeLikeCardStatus(cardId, isLiked) {
+  changeLikeCardStatus(cardId, isLiked, token) {
     return fetch(`${this._address}/cards/${cardId}/likes`, {
       method: isLiked ? 'PUT' : 'DELETE',
       headers: {
-        authorization: this._token,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
     })
       .then(this._responseProcessing())
@@ -99,8 +101,7 @@ class Api {
 }
 
 const api = new Api({
-  address: 'https://mesto.nomoreparties.co/v1/cohort-35',
-  token: 'b6ff83c2-3ced-4557-872e-eefa9152b997'
+  address: 'https://api.mesto.natasha.snezh.nomoredomains.xyz',
 });
 
 export default api;

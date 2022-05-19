@@ -32,16 +32,21 @@ function Main({
       </section>
       <section className="elements">
 
-        {cards.map((card) =>
-        (<Card
-          key={card._id}
-          card={card}
-          onCardClick={onCardClick}
-          currentUser={currentUser}
-          onCardLike={onCardLike}
-          onCardDelete={onCardDelete}
-        />))}
-      </section>
+        {cards.data.map((card) => {
+          return (
+            <Card
+              key={card._id}
+              card={card}
+              onCardClick={onCardClick}
+              currentUser={currentUser}
+              onCardLike={onCardLike}
+              onCardDelete={onCardDelete}
+            />
+          );
+        })
+        }
+        {console.log(cards.data)}
+        {console.log(cards)}      </section>
     </main>
   )
 }

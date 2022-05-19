@@ -32,61 +32,51 @@ function App() {
   const [email, setEmail] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem("jwt");
 
   useEffect(() => {
     if (loggedInn === true) {
-      api.getProfileInfo(token)
+      api.getProfileInfo()
         .then((currentUser) => {
           setCurrentUser(currentUser);
-          console.log(currentUser);
-          console.log(token);
+        })
+        .catch(err => {
+          console.log(err);
+        })
+      api.getCards()
+        .then((res) => {
+          setCards(
+            res.data
+          )
         })
         .catch(err => {
           console.log(err);
         })
     }
-
-  }, [loggedInn, token])
-
-  useEffect(() => {
-    if (loggedInn === true) {
-      api.getCards(token)
-      .then((res) => {
-        setCards(
-          res
-        )
-      })
-      .catch(err => {
-        console.log(err);
-      })
-    }
-  }, [loggedInn, token])
+  }, [loggedInn])
 
   useEffect(() => {
-    if (token) {
-      return Auth.getContent(token)
+    if (loggedInn) {
+      return Auth.getContent(localStorage.getItem('jwt'))
         .then((res) => {
           console.log(res);
           setLoggedInn(true);
           setEmail(res.email);
           setCurrentUser(res);
-          navigate('/');
         })
         .catch((err) => {
           setIsSuccess(false);
           if (err.status === 401) {
             console.log('401 — Токен не передан или передан не в том формате');
           }
-          console.log(token, '401 — Переданный токен некорректен');
+          console.log('401 — Переданный токен некорректен');
         })
     }
-  }, [navigate.location, token]);
+  }, []);
 
   // actions with cards
 
   function handleAddPlace(card) {
-    api.sendCard(card, token)
+    api.sendCard(card,)
       .then((newCard) => {
         setCards(
           [newCard, ...cards]
@@ -132,9 +122,12 @@ function App() {
   // user
 
   function handleUpdateUser(currentUser) {
-    api.sendProfileInfo(currentUser, token)
+    console.log(currentUser);
+
+    api.sendProfileInfo(currentUser)
       .then((user) => {
-        setCurrentUser(user);
+        console.log(user);
+        setCurrentUser({name: user.name, about: user.about, avatar: currentUser.avatar});
         setIsEditProfilePopupOpen(false);
       })
       .catch(err => {
@@ -143,9 +136,10 @@ function App() {
   }
 
   function handleUpdateAvatar(currentUser) {
-    api.sendAvatar(currentUser, token)
+    console.log(currentUser);
+    api.sendAvatar(currentUser.avatar)
       .then((res) => {
-        setCurrentUser(res);
+        setCurrentUser({name: currentUser.name, about: currentUser.about, avatar: res.avatar});
         setIsEditAvatarPopupOpen(false);
       })
       .catch(err => {
@@ -158,11 +152,11 @@ function App() {
   function handleCardLike(card) {
     const isLiked = card.likes.some(i => i === currentUser._id);
 
-    api.changeLikeCardStatus(card._id, !isLiked, token)
+    api.changeLikeCardStatus(card._id, !isLiked,)
       .then((newCard) => {
         console.log(newCard);
-        setCards((state) => 
-        state.map((c) => c._id === card._id ? newCard : c));
+        setCards((state) =>
+          state.map((c) => c._id === card._id ? newCard : c));
       })
       .catch(err => {
         console.log(`Ошибка при размещении лайка${err}`);
@@ -170,7 +164,7 @@ function App() {
   }
 
   function handleCardDelete(card) {
-    api.deleteCard(card._id, token)
+    api.deleteCard(card._id,)
       .then(() => {
         setCards((cards) => cards.filter((c) => {
           return c._id !== card._id;
@@ -187,14 +181,16 @@ function App() {
   function handleLogin(email, password) {
     Auth.authorize(email, password)
       .then((data) => {
-        Auth.getContent(data.token).then((res) => {
-          // localStorage.setItem('jwt', res.token);
-          setLoggedInn(true);
-          setEmail(email);
-          navigate('/');
-        });
+        Auth.getContent(data.token)
+          .then((res) => {
+            api.setToken(data.token);
+            setLoggedInn(true);
+            setEmail(email);
+            navigate('/');
+          });
       })
       .catch((err) => {
+        console.log(err);
         setIsSuccess(false);
         setIsInfoTooltipOpen(true);
         if (err.status === 400) {

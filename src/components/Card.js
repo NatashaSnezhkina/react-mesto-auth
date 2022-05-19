@@ -30,11 +30,11 @@ function Card({
       <div className="element__info">
         <h2 className="element__title">{card.name}</h2>
         <div className="element__likes">
-          <button className={`element__like ${isLiked ? 'element__like_active' : ''}`} type="button" aria-label="лайк" onClick={handleLikeClick}>{console.log(isLiked)}{console.log(isOwn)}</button>
+          <button className={`element__like ${isLiked ? 'element__like_active' : ''}`} type="button" aria-label="лайк" onClick={handleLikeClick}></button>
           <p className="element__like__counter">{card.likes.length}</p>
         </div>
       </div>
-      <button className={` ${isOwn ? 'element__basket' : ''}`} type="button" aria-label="корзина" onClick={handleDeleteClick}>{console.log(isOwn)}</button>
+      <button className={` ${isOwn ? 'element__basket' : 'button'}`} type="button" aria-label="корзина" onClick={handleDeleteClick}></button>
     </div>
   )
 }

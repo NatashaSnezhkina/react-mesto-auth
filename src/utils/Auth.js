@@ -24,28 +24,6 @@ export const register = (email, password) => {
     .then(checkResponse)
 };
 
-// export const authorize = (email, password) => {
-//   return fetch(`${BASE_URL}/signin`, {
-//     method: 'POST',
-//     headers: {
-//       'Accept': 'application/json',
-//       'Content-Type': 'application/json'
-//     },
-//     body: JSON.stringify({ email, password })
-//   })
-//     .then(res => res.json())
-//     .then((data) => {
-//       console.log(data);
-//       localStorage.setItem('token', data.token);
-//       // сохраняем токен                 
-//       // if (data.token) {
-//       //   console.log(data.token);
-//       //   localStorage.setItem("jwt", data.token);
-//       //   return data;
-//       // }
-//     });
-// };
-
 export const authorize = (email, password) => {
   return fetch(`${BASE_URL}/signin`, {
     method: "POST",
@@ -57,12 +35,12 @@ export const authorize = (email, password) => {
   })
     .then((res) => checkResponse(res))
     // .then(res => res.json())
-    // .then((data) => {
-    //   if (data.token) {
-    //     localStorage.setItem("jwt", data.token);
-    //     return data;
-    //   }
-    // });
+    .then((data) => {
+      if (data.token) {
+        localStorage.setItem("jwt", data.token);
+        return data;
+      }
+    });
 };
 
 export const getContent = (token) => {

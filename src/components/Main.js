@@ -32,7 +32,7 @@ function Main({
       </section>
       <section className="elements">
 
-        {cards.data.map((card) => {
+        {cards.map((card) => {
           return (
             <Card
               key={card._id}
@@ -44,9 +44,7 @@ function Main({
             />
           );
         })
-        }
-        {console.log(cards.data)}
-        {console.log(cards)}      </section>
+        }</section>
     </main>
   )
 }

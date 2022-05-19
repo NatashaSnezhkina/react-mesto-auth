@@ -30,6 +30,7 @@ function EditProfilePopup({
     onUpdateUser({
       name,
       about: description,
+      avatar: currentUser.avatar
     });
   }
 

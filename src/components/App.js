@@ -34,9 +34,35 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (loggedInn === true) {
+    const token = localStorage.getItem('jwt');
+    console.log("LoggedInn in authoriztion hook:", loggedInn);
+    if (token) {
+      Auth.getContent(token)
+        .then((res) => {
+          // console.log(res);
+          setLoggedInn(true);
+          console.log("I have just changed loggedInn to TRUE:", loggedInn);
+          setEmail(res.email);
+          setCurrentUser(res);
+        })
+        .catch((err) => {
+          console.log('не получилось')
+          setIsSuccess(false);
+          if (err.status === 401) {
+            console.log('401 — Токен не передан или передан не в том формате');
+          }
+          console.log('401 — Переданный токен некорректен');
+        })
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log("I am triggered with loggedInn change:", loggedInn);
+    if (loggedInn===true) {
+      api.setToken(localStorage.getItem('jwt'));
       api.getProfileInfo()
         .then((currentUser) => {
+          // console.log('prodile info')
           setCurrentUser(currentUser);
         })
         .catch(err => {
@@ -54,25 +80,6 @@ function App() {
     }
   }, [loggedInn])
 
-  useEffect(() => {
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      return Auth.getContent(token)
-        .then((res) => {
-          console.log(res);
-          setLoggedInn(true);
-          setEmail(res.email);
-          setCurrentUser(res);
-        })
-        .catch((err) => {
-          setIsSuccess(false);
-          if (err.status === 401) {
-            console.log('401 — Токен не передан или передан не в том формате');
-          }
-          console.log('401 — Переданный токен некорректен');
-        })
-    }
-  }, [navigate.location]);
 
   // actions with cards
 

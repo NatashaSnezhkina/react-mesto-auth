@@ -40,6 +40,7 @@ export const authorize = (email, password) => {
 };
 
 export const getContent = (token) => {
+  console.log('getContent')
   return fetch(`${BASE_URL}/users/me`, {
     method: 'GET',
     headers: {

@@ -55,8 +55,9 @@ function App() {
   }, [loggedInn])
 
   useEffect(() => {
-    if (loggedInn) {
-      return Auth.getContent(localStorage.getItem('jwt'))
+    const token = localStorage.getItem('jwt');
+    if (token) {
+      return Auth.getContent(token)
         .then((res) => {
           console.log(res);
           setLoggedInn(true);
@@ -71,7 +72,7 @@ function App() {
           console.log('401 — Переданный токен некорректен');
         })
     }
-  }, []);
+  }, [navigate.location]);
 
   // actions with cards
 
@@ -127,7 +128,7 @@ function App() {
     api.sendProfileInfo(currentUser)
       .then((user) => {
         console.log(user);
-        setCurrentUser({name: user.name, about: user.about, avatar: currentUser.avatar});
+        setCurrentUser({ name: user.name, about: user.about, avatar: currentUser.avatar });
         setIsEditProfilePopupOpen(false);
       })
       .catch(err => {
@@ -139,7 +140,7 @@ function App() {
     console.log(currentUser);
     api.sendAvatar(currentUser.avatar)
       .then((res) => {
-        setCurrentUser({name: currentUser.name, about: currentUser.about, avatar: res.avatar});
+        setCurrentUser({ name: currentUser.name, about: currentUser.about, avatar: res.avatar });
         setIsEditAvatarPopupOpen(false);
       })
       .catch(err => {
@@ -200,6 +201,7 @@ function App() {
         }
       });
   }
+
 
   function handleRegister(email, password) {
     return Auth.register(email, password)
